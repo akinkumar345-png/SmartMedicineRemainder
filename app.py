@@ -12,32 +12,51 @@ load_dotenv()
 
 app = Flask(__name__)
 
-with open("vapid_private.txt", "r", encoding="utf-8") as f:
-    VAPID_PRIVATE_KEY = f.read().strip()
+# =========================================================
+# VAPID CONFIGURATION
+# =========================================================
+
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
+
+# For local testing, use vapid_private.txt if environment
+# variable is not available.
+if not VAPID_PRIVATE_KEY:
+    try:
+        with open("vapid_private.txt", "r", encoding="utf-8") as f:
+            VAPID_PRIVATE_KEY = f.read().strip()
+    except FileNotFoundError:
+        raise RuntimeError(
+            "VAPID_PRIVATE_KEY is not set and vapid_private.txt was not found."
+        )
 
 VAPID_CLAIMS = {
     "sub": "mailto:akinkumar345@gmail.com"
 }
 
-
 app.secret_key = "smart_medicine_reminder_secret_key"
-
-def start_reminder_thread():
-
-    reminder_thread = threading.Thread(
-        target=reminder.start_reminder,
-        args=(VAPID_PRIVATE_KEY, VAPID_CLAIMS),
-        daemon=True
-    )
-
-    reminder_thread.start()
-
 
 
 # =========================================================
 # DATABASE CONNECTION
 # =========================================================
 
+def get_db():
+    database_url = os.environ.get("DATABASE_URL")
+
+    if not database_url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Add it to your .env file."
+        )
+
+    return psycopg2.connect(
+        database_url,
+        cursor_factory=RealDictCursor
+    )
+
+
+# =========================================================
+# DATABASE HELPER FUNCTIONS
+# =========================================================
 
 def db_fetchone(conn, query, params=()):
     cursor = conn.cursor()
@@ -50,12 +69,6 @@ def db_fetchall(conn, query, params=()):
     cursor.execute(query, params)
     return cursor.fetchall()
 
-def get_db():
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL is not set. Add it to your .env file.")
-    return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
-
 
 # =========================================================
 # CREATE DATABASE TABLES
@@ -66,7 +79,10 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Users table
+    # -----------------------------------------------------
+    # USERS TABLE
+    # -----------------------------------------------------
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -75,7 +91,10 @@ def init_db():
         )
     """)
 
-    # Profile table
+    # -----------------------------------------------------
+    # PROFILE TABLE
+    # -----------------------------------------------------
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS profiles (
             id SERIAL PRIMARY KEY,
@@ -90,7 +109,10 @@ def init_db():
         )
     """)
 
-    # Medicines table
+    # -----------------------------------------------------
+    # MEDICINES TABLE
+    # -----------------------------------------------------
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS medicines (
             id SERIAL PRIMARY KEY,
@@ -103,7 +125,11 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
-        # Push notification subscriptions table
+
+    # -----------------------------------------------------
+    # PUSH SUBSCRIPTIONS TABLE
+    # -----------------------------------------------------
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS push_subscriptions (
             id SERIAL PRIMARY KEY,
@@ -117,6 +143,42 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
+# =========================================================
+# REMINDER THREAD
+# =========================================================
+
+def start_reminder_thread():
+
+    reminder_thread = threading.Thread(
+        target=reminder.start_reminder,
+        args=(VAPID_PRIVATE_KEY, VAPID_CLAIMS),
+        daemon=True
+    )
+
+    reminder_thread.start()
+
+    print("Medicine Reminder Started")
+
+
+# =========================================================
+# INITIALIZE DATABASE AND REMINDER
+# =========================================================
+
+# Database must be initialized BEFORE the reminder thread.
+try:
+    init_db()
+    print("Database initialized")
+except Exception as error:
+    print("Database initialization error:", error)
+
+
+# Start reminder after database initialization.
+try:
+    start_reminder_thread()
+except Exception as error:
+    print("Reminder startup error:", error)
 
 
 # =========================================================
@@ -146,8 +208,13 @@ def login():
 
         conn = get_db()
 
-        user = db_fetchone(conn, 
-            "SELECT * FROM users WHERE username = %s",
+        user = db_fetchone(
+            conn,
+            """
+            SELECT *
+            FROM users
+            WHERE username = %s
+            """,
             (username,)
         )
 
@@ -203,7 +270,9 @@ def register():
 
         try:
 
-            conn.cursor().execute(
+            cursor = conn.cursor()
+
+            cursor.execute(
                 """
                 INSERT INTO users
                 (username, password)
@@ -224,6 +293,7 @@ def register():
 
         except psycopg2.IntegrityError:
 
+            conn.rollback()
             conn.close()
 
             return """
@@ -266,6 +336,10 @@ def profile():
 
     conn = get_db()
 
+    # -----------------------------------------------------
+    # SAVE PROFILE
+    # -----------------------------------------------------
+
     if request.method == "POST":
 
         name = request.form["name"]
@@ -276,14 +350,21 @@ def profile():
         contact = request.form["contact"]
 
         # Check whether profile already exists
-        existing_profile = db_fetchone(conn, 
-            "SELECT id FROM profiles WHERE user_id = %s",
+        existing_profile = db_fetchone(
+            conn,
+            """
+            SELECT id
+            FROM profiles
+            WHERE user_id = %s
+            """,
             (user_id,)
         )
 
         if existing_profile:
 
-            conn.cursor().execute(
+            cursor = conn.cursor()
+
+            cursor.execute(
                 """
                 UPDATE profiles
                 SET name = %s,
@@ -307,7 +388,9 @@ def profile():
 
         else:
 
-            conn.cursor().execute(
+            cursor = conn.cursor()
+
+            cursor.execute(
                 """
                 INSERT INTO profiles
                 (
@@ -342,8 +425,12 @@ def profile():
         </script>
         """
 
-    # Get existing profile
-    profile_data = db_fetchone(conn, 
+    # -----------------------------------------------------
+    # GET PROFILE
+    # -----------------------------------------------------
+
+    profile_data = db_fetchone(
+        conn,
         """
         SELECT *
         FROM profiles
@@ -354,8 +441,8 @@ def profile():
 
     conn.close()
 
-    # Existing profiles are view-only until Edit Profile is clicked.
-    # New users can enter their profile information immediately.
+    # Existing profiles are view-only until Edit Profile
+    # is clicked.
     edit_mode = request.args.get("edit") == "1"
 
     return render_template(
@@ -394,8 +481,9 @@ def medicine():
             """
 
         conn = get_db()
+        cursor = conn.cursor()
 
-        conn.cursor().execute(
+        cursor.execute(
             """
             INSERT INTO medicines
             (
@@ -443,7 +531,8 @@ def view():
 
     conn = get_db()
 
-    medicines = db_fetchall(conn, 
+    medicines = db_fetchall(
+        conn,
         """
         SELECT *
         FROM medicines
@@ -474,14 +563,12 @@ def chatbot():
     return render_template("chatbot.html")
 
 
+# =========================================================
+# CHATBOT API
+# =========================================================
+
 @app.route("/api/chatbot", methods=["POST"])
 def chatbot_api():
-    """Medicine-reminder assistant API.
-
-    This endpoint handles app/navigation questions and returns the
-    logged-in user's own medicine schedule when requested. It does
-    not diagnose conditions or recommend changing medicine doses.
-    """
 
     if "user_id" not in session:
         return jsonify({
@@ -490,20 +577,29 @@ def chatbot_api():
         }), 401
 
     data = request.get_json(silent=True) or {}
-    message = str(data.get("message", "")).strip()
+
+    message = str(
+        data.get("message", "")
+    ).strip()
+
     text = message.lower()
 
     if not message:
+
         return jsonify({
             "success": False,
             "reply": "Please type a question. For example: “How do I add a medicine?”"
         })
 
-    # ---- Navigation / app help ----
+    # -----------------------------------------------------
+    # ADD MEDICINE
+    # -----------------------------------------------------
+
     if (
         ("add" in text or "save" in text or "create" in text)
         and "medicine" in text
     ):
+
         return jsonify({
             "success": True,
             "intent": "add_medicine",
@@ -515,70 +611,125 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # VIEW MEDICINES
+    # -----------------------------------------------------
+
     if (
-        ("view" in text or "see" in text or "show" in text or "list" in text)
-        and ("medicine" in text or "medication" in text)
+        ("view" in text or "see" in text or
+         "show" in text or "list" in text)
+        and
+        ("medicine" in text or "medication" in text)
     ):
+
         return jsonify({
             "success": True,
             "intent": "view_medicines",
-            "reply": "You can open View Medicines from the Dashboard. I can also show your saved medicine schedule here.",
-            "action": {"label": "Open View Medicines", "url": "/view"}
+            "reply": (
+                "You can open View Medicines from the Dashboard. "
+                "I can also show your saved medicine schedule here."
+            ),
+            "action": {
+                "label": "Open View Medicines",
+                "url": "/view"
+            }
         })
 
+    # -----------------------------------------------------
+    # MY MEDICINES
+    # -----------------------------------------------------
+
     if (
-        ("my medicine" in text or "my medicines" in text or
-         "my medication" in text or "what medicine" in text or
-         "which medicine" in text or "medicine list" in text)
+        "my medicine" in text
+        or "my medicines" in text
+        or "my medication" in text
+        or "what medicine" in text
+        or "which medicine" in text
+        or "medicine list" in text
     ):
+
         conn = get_db()
-        medicines = db_fetchall(conn, 
+
+        medicines = db_fetchall(
+            conn,
             """
-            SELECT medicine_type, strength, from_date, to_date, time
+            SELECT
+                medicine_type,
+                strength,
+                from_date,
+                to_date,
+                time
             FROM medicines
             WHERE user_id = %s
             ORDER BY from_date, time
             """,
             (session["user_id"],)
         )
+
         conn.close()
 
         if not medicines:
+
             reply = (
                 "You do not have any saved medicines yet. "
                 "Open Medicine Details to add your first medicine."
             )
+
         else:
-            lines = ["Here are your saved medicines:"]
+
+            lines = [
+                "Here are your saved medicines:"
+            ]
+
             for med in medicines:
+
                 lines.append(
                     f"• {med['medicine_type']} — {med['strength']} "
-                    f"from {med['from_date']} to {med['to_date']} at {med['time']}"
+                    f"from {med['from_date']} to {med['to_date']} "
+                    f"at {med['time']}"
                 )
+
             reply = "\n".join(lines)
 
         return jsonify({
             "success": True,
             "intent": "my_medicines",
             "reply": reply,
-            "action": {"label": "Open View Medicines", "url": "/view"}
+            "action": {
+                "label": "Open View Medicines",
+                "url": "/view"
+            }
         })
 
+    # -----------------------------------------------------
+    # PROFILE
+    # -----------------------------------------------------
+
     if "profile" in text or "personal details" in text:
+
         return jsonify({
             "success": True,
             "intent": "profile",
             "reply": (
-                "Open Profile from the Dashboard to manage your personal and "
-                "medical information."
+                "Open Profile from the Dashboard to manage your personal "
+                "and medical information."
             ),
-            "action": {"label": "Open Profile", "url": "/profile"}
+            "action": {
+                "label": "Open Profile",
+                "url": "/profile"
+            }
         })
 
+    # -----------------------------------------------------
+    # NOTIFICATIONS
+    # -----------------------------------------------------
+
     if (
-        "notification" in text or "notifications" in text or
-        "push notification" in text
+        "notification" in text
+        or "notifications" in text
+        or "push notification" in text
     ):
+
         return jsonify({
             "success": True,
             "intent": "notifications",
@@ -587,24 +738,47 @@ def chatbot_api():
                 "browser notifications. Your browser must permit notifications "
                 "for the reminder alerts to appear."
             ),
-            "action": {"label": "Open Dashboard", "url": "/dashboard"}
+            "action": {
+                "label": "Open Dashboard",
+                "url": "/dashboard"
+            }
         })
 
-    if "reminder" in text or "remind" in text or "alert" in text:
+    # -----------------------------------------------------
+    # REMINDERS
+    # -----------------------------------------------------
+
+    if (
+        "reminder" in text
+        or "remind" in text
+        or "alert" in text
+    ):
+
         return jsonify({
             "success": True,
             "intent": "reminders",
             "reply": (
-                "A reminder is based on the From Date, To Date and Time saved "
-                "with your medicine. Make sure browser notifications are enabled "
-                "on the Dashboard."
+                "A reminder is based on the From Date, To Date and Time "
+                "saved with your medicine. Make sure browser notifications "
+                "are enabled on the Dashboard."
             ),
-            "action": {"label": "Open Dashboard", "url": "/dashboard"}
+            "action": {
+                "label": "Open Dashboard",
+                "url": "/dashboard"
+            }
         })
 
+    # -----------------------------------------------------
+    # MISSED DOSE
+    # -----------------------------------------------------
+
     if (
-        "forgot" in text and ("dose" in text or "medicine" in text)
-    ) or "missed dose" in text:
+        ("forgot" in text and
+         ("dose" in text or "medicine" in text))
+        or
+        "missed dose" in text
+    ):
+
         return jsonify({
             "success": True,
             "intent": "missed_dose",
@@ -616,25 +790,41 @@ def chatbot_api():
             )
         })
 
-    # ---- General medicine information ----
+    # -----------------------------------------------------
+    # MEDICINE BASICS
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "what is medicine", "what are medicines", "what is medication",
-        "medicine meaning", "medication meaning"
+        "what is medicine",
+        "what are medicines",
+        "what is medication",
+        "medicine meaning",
+        "medication meaning"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "medicine_basics",
             "reply": (
-                "A medicine is a substance used to prevent, diagnose, relieve, "
-                "or treat a health condition. Medicines can have benefits, "
-                "side effects, interactions, and precautions, so they should "
-                "be used according to the prescribed or official instructions."
+                "A medicine is a substance used to prevent, diagnose, "
+                "relieve, or treat a health condition. Medicines can have "
+                "benefits, side effects, interactions, and precautions, "
+                "so they should be used according to the prescribed or "
+                "official instructions."
             )
         })
 
+    # -----------------------------------------------------
+    # SIDE EFFECTS
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "side effect", "side effects", "adverse effect", "reaction"
+        "side effect",
+        "side effects",
+        "adverse effect",
+        "reaction"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "side_effects",
@@ -647,10 +837,18 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # MEDICINE INTERACTIONS
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "interaction", "drug interaction", "medicine interaction",
-        "can i take", "take together"
+        "interaction",
+        "drug interaction",
+        "medicine interaction",
+        "can i take",
+        "take together"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "interactions",
@@ -663,9 +861,17 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # STOP MEDICINE
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "stop medicine", "stopping medicine", "can i stop", "discontinue"
+        "stop medicine",
+        "stopping medicine",
+        "can i stop",
+        "discontinue"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "stopping_medicine",
@@ -676,9 +882,17 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # MEDICINE STORAGE
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "storage", "store medicine", "keep medicine", "where to keep"
+        "storage",
+        "store medicine",
+        "keep medicine",
+        "where to keep"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "storage",
@@ -690,9 +904,17 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # EXPIRY
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "expired", "expiry", "expiration", "expired medicine"
+        "expired",
+        "expiry",
+        "expiration",
+        "expired medicine"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "expiry",
@@ -704,9 +926,17 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # OVERDOSE
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "overdose", "too much medicine", "took too much", "extra dose"
+        "overdose",
+        "too much medicine",
+        "took too much",
+        "extra dose"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "overdose",
@@ -719,38 +949,68 @@ def chatbot_api():
             )
         })
 
+    # -----------------------------------------------------
+    # PREGNANCY
+    # -----------------------------------------------------
+
     if any(k in text for k in [
-        "pregnant", "pregnancy", "breastfeeding", "breast feeding"
+        "pregnant",
+        "pregnancy",
+        "breastfeeding",
+        "breast feeding"
     ]):
+
         return jsonify({
             "success": True,
             "intent": "pregnancy",
             "reply": (
-                "Medicine safety during pregnancy or breastfeeding depends on "
-                "the exact medicine and situation. Do not start, stop, or "
-                "change a medicine based only on a chatbot response; check "
-                "with your doctor or pharmacist."
+                "Medicine safety during pregnancy or breastfeeding depends "
+                "on the exact medicine and situation. Do not start, stop, "
+                "or change a medicine based only on a chatbot response; "
+                "check with your doctor or pharmacist."
             )
         })
 
-    # ---- Greetings / general help ----
-    if any(k in text for k in ["hello", "hi", "hey", "good morning", "good evening"]):
+    # -----------------------------------------------------
+    # GREETING
+    # -----------------------------------------------------
+
+    if any(k in text for k in [
+        "hello",
+        "hi",
+        "hey",
+        "good morning",
+        "good evening"
+    ]):
+
         return jsonify({
             "success": True,
             "intent": "greeting",
             "reply": (
-                "Hello! 👋 I’m your Smart Medicine Assistant. You can ask me "
-                "about adding medicines, viewing your medicines, reminders, "
+                "Hello! 👋 I’m your Smart Medicine Assistant. You can ask "
+                "me about adding medicines, viewing your medicines, reminders, "
                 "notifications, your saved schedule, or general medicine safety."
             )
         })
 
+    # -----------------------------------------------------
+    # THANKS
+    # -----------------------------------------------------
+
     if "thank" in text:
+
         return jsonify({
             "success": True,
             "intent": "thanks",
-            "reply": "You're welcome! 💊 Stay safe and follow your prescribed medicine instructions."
+            "reply": (
+                "You're welcome! 💊 Stay safe and follow your prescribed "
+                "medicine instructions."
+            )
         })
+
+    # -----------------------------------------------------
+    # FALLBACK
+    # -----------------------------------------------------
 
     return jsonify({
         "success": True,
@@ -767,7 +1027,9 @@ def chatbot_api():
             "I won't guess a dose or tell you to start/stop a prescription."
         )
     })
-    # =========================================================
+
+
+# =========================================================
 # SAVE PUSH NOTIFICATION SUBSCRIPTION
 # =========================================================
 
@@ -775,6 +1037,7 @@ def chatbot_api():
 def save_subscription():
 
     if "user_id" not in session:
+
         return {
             "success": False,
             "message": "Please login first"
@@ -782,14 +1045,22 @@ def save_subscription():
 
     data = request.get_json()
 
+    if not data:
+
+        return {
+            "success": False,
+            "message": "Invalid subscription data"
+        }, 400
+
     endpoint = data["endpoint"]
     p256dh = data["keys"]["p256dh"]
     auth = data["keys"]["auth"]
 
     conn = get_db()
+    cursor = conn.cursor()
 
     # Remove old subscription(s) for this user
-    conn.cursor().execute(
+    cursor.execute(
         """
         DELETE FROM push_subscriptions
         WHERE user_id = %s
@@ -797,8 +1068,8 @@ def save_subscription():
         (session["user_id"],)
     )
 
-    # Save the new subscription
-    conn.cursor().execute(
+    # Save new subscription
+    cursor.execute(
         """
         INSERT INTO push_subscriptions
         (
@@ -825,6 +1096,7 @@ def save_subscription():
         "message": "Notification subscription saved"
     }
 
+
 # =========================================================
 # TEST PUSH NOTIFICATION
 # =========================================================
@@ -837,9 +1109,14 @@ def test_notification():
 
     conn = get_db()
 
-    subscriptions = db_fetchall(conn, 
+    subscriptions = db_fetchall(
+        conn,
         """
-        SELECT id, endpoint, p256dh, auth
+        SELECT
+            id,
+            endpoint,
+            p256dh,
+            auth
         FROM push_subscriptions
         WHERE user_id = %s
         """,
@@ -849,7 +1126,11 @@ def test_notification():
     conn.close()
 
     if not subscriptions:
-        return "No notification subscription found. Enable notifications first."
+
+        return (
+            "No notification subscription found. "
+            "Enable notifications first."
+        )
 
     notification_sent = False
 
@@ -867,7 +1148,10 @@ def test_notification():
 
             webpush(
                 subscription_info=push_subscription,
-                data='{"title":"💊 Smart Medicine Reminder","body":"This is a test medicine reminder notification."}',
+                data=(
+                    '{"title":"💊 Smart Medicine Reminder",'
+                    '"body":"This is a test medicine reminder notification."}'
+                ),
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims=VAPID_CLAIMS
             )
@@ -882,8 +1166,9 @@ def test_notification():
             if "410" in str(error):
 
                 conn = get_db()
+                cursor = conn.cursor()
 
-                conn.cursor().execute(
+                cursor.execute(
                     """
                     DELETE FROM push_subscriptions
                     WHERE id = %s
@@ -895,12 +1180,18 @@ def test_notification():
                 conn.close()
 
             else:
-                return "Notification failed. Check the terminal for the error."
+
+                return (
+                    "Notification failed. "
+                    "Check the terminal for the error."
+                )
 
     if notification_sent:
+
         return "Test notification sent successfully!"
 
     return "No valid notification subscription found."
+
 
 # =========================================================
 # LOGOUT
@@ -920,13 +1211,11 @@ def logout():
 
 if __name__ == "__main__":
 
-    init_db()
-    start_reminder_thread()
-
     print("----------------------------------------")
     print(" Smart Medicine Reminder")
     print("----------------------------------------")
     print(" Database initialized")
+    print(" Medicine Reminder Started")
     print(" Flask server starting...")
     print("----------------------------------------")
 
