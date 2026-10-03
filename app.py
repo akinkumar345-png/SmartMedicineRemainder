@@ -947,8 +947,13 @@ def logout():
 
 
 # Start database and reminder thread when deployed with Gunicorn
+print(">>> STARTING DATABASE <<<")
 init_db()
+
+print(">>> STARTING REMINDER THREAD <<<")
 start_reminder_thread()
+
+print(">>> APP INITIALIZATION COMPLETE <<<")
 
 # =========================================================
 # START APPLICATION
