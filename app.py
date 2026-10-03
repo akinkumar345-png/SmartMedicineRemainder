@@ -12,8 +12,12 @@ load_dotenv()
 
 app = Flask(__name__)
 
-with open("vapid_private.txt", "r", encoding="utf-8") as f:
-    VAPID_PRIVATE_KEY = f.read().strip()
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
+
+if not VAPID_PRIVATE_KEY:
+    raise RuntimeError(
+        "VAPID_PRIVATE_KEY is not set in the environment."
+    )
 
 VAPID_CLAIMS = {
     "sub": "mailto:akinkumar345@gmail.com"
