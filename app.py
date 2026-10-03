@@ -849,7 +849,15 @@ def test_notification():
         """,
         (session["user_id"],)
     )
+    print(
+        "TEST NOTIFICATION: subscription_count =",
+        len(subscriptions)
+    )
 
+    print(
+        "TEST NOTIFICATION: subscriptions =",
+        subscriptions
+    )
     conn.close()
 
     if not subscriptions:
@@ -869,18 +877,25 @@ def test_notification():
 
         try:
 
-            webpush(
+            print("PUSH: Sending notification...")
+            print("PUSH: subscription_id =", subscription["id"])
+
+            response = webpush(
                 subscription_info=push_subscription,
                 data='{"title":"💊 Smart Medicine Reminder","body":"This is a test medicine reminder notification."}',
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims=VAPID_CLAIMS
             )
 
+            print("PUSH: Notification sent successfully")
+            print("PUSH: Response =", response)
+
             notification_sent = True
 
         except WebPushException as error:
 
-            print("Push notification error:", error)
+            print("PUSH WEBPUSH ERROR:", repr(error))
+            print("PUSH WEBPUSH ERROR TEXT:", str(error))
 
             # Remove expired subscription
             if "410" in str(error):
