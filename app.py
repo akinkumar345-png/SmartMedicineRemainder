@@ -1165,6 +1165,9 @@ def test_notification():
         """,
         (session["user_id"],)
     )
+    print("TEST NOTIFICATION: user_id =", session["user_id"])
+    print("TEST NOTIFICATION: subscription_count =", len(subscriptions))
+    print("TEST NOTIFICATION: subscriptions =", subscriptions)
 
     conn.close()
 
