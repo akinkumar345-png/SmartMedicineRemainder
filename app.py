@@ -946,6 +946,10 @@ def logout():
     return redirect(url_for("login"))
 
 
+# Start database and reminder thread when deployed with Gunicorn
+init_db()
+start_reminder_thread()
+
 # =========================================================
 # START APPLICATION
 # =========================================================
