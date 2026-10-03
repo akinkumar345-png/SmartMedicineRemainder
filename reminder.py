@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from pywebpush import webpush, WebPushException
 
@@ -37,11 +38,13 @@ def get_db():
 
 def check_medicines(vapid_private_key, vapid_claims):
 
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
 
     today = now.strftime("%Y-%m-%d")
     current_time = now.strftime("%H:%M")
-
+    
+    print("Reminder check - India time:", today, current_time)
+        
     conn = get_db()
 
     medicines = db_fetchall(conn, 
