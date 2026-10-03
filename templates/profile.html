@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Profile | Smart Medicine Reminder</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+
+            min-height: 100vh;
+
+            padding-bottom: 40px;
+
+            background:
+                linear-gradient(
+                    rgba(0, 80, 75, 0.55),
+                    rgba(0, 35, 55, 0.70)
+                ),
+                url("/static/images/profile.jpg");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            color: white;
+        }
+
+
+        /* ================= NAVBAR ================= */
+
+        nav {
+
+            width: 100%;
+
+            padding: 18px 6%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            background: rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(15px);
+
+            -webkit-backdrop-filter: blur(15px);
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+
+        .logo {
+
+            font-size: 22px;
+
+            font-weight: bold;
+        }
+
+
+        .nav-buttons {
+
+            display: flex;
+
+            gap: 10px;
+        }
+
+
+        .nav-buttons a {
+
+            text-decoration: none;
+
+            color: white;
+
+            padding: 10px 16px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            transition: 0.3s;
+        }
+
+
+        .dashboard-btn {
+
+            background: #3498db;
+        }
+
+
+        .dashboard-btn:hover {
+
+            background: #2980b9;
+
+            transform: translateY(-2px);
+        }
+
+
+        .logout-btn {
+
+            background: #e74c3c;
+        }
+
+
+        .logout-btn:hover {
+
+            background: #c0392b;
+
+            transform: translateY(-2px);
+        }
+
+
+        /* ================= CONTAINER ================= */
+
+        .container {
+
+            width: 92%;
+
+            max-width: 750px;
+
+            margin: 45px auto;
+        }
+
+
+        /* ================= TITLE ================= */
+
+        .heading {
+
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .profile-icon {
+
+            font-size: 55px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .heading h1 {
+
+            font-size: 30px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .heading p {
+
+            color: #eeeeee;
+
+            font-size: 14px;
+        }
+
+
+        /* ================= FORM CARD ================= */
+
+        .profile-card {
+
+            padding: 35px;
+
+            background: rgba(255, 255, 255, 0.15);
+
+            backdrop-filter: blur(15px);
+
+            -webkit-backdrop-filter: blur(15px);
+
+            border: 1px solid rgba(255, 255, 255, 0.28);
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.28);
+        }
+
+
+        /* ================= FORM ================= */
+
+        .form-grid {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+        }
+
+
+        .input-group {
+
+            display: flex;
+
+            flex-direction: column;
+        }
+
+
+        .full-width {
+
+            grid-column: 1 / -1;
+        }
+
+
+        label {
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+        }
+
+
+        input,
+        select,
+        textarea {
+
+            width: 100%;
+
+            padding: 13px 14px;
+
+            border: none;
+
+            outline: none;
+
+            border-radius: 9px;
+
+            background: rgba(255, 255, 255, 0.95);
+
+            color: #222;
+
+            font-size: 14px;
+
+            transition: 0.3s;
+        }
+
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+
+            box-shadow:
+                0 0 0 3px rgba(0, 184, 148, 0.35);
+        }
+
+
+        textarea {
+
+            min-height: 90px;
+
+            resize: vertical;
+        }
+
+.edit-btn {
+    display: inline-block;
+    text-decoration: none;
+    background: #3498db;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: 0.3s;
+}
+
+.edit-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+        /* ================= PROFILE POSTER ================= */
+
+        .profile-poster {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .poster-item {
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 12px;
+        }
+
+        .poster-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .poster-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #b8fff1;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .poster-value {
+            display: block;
+            color: white;
+            font-size: 16px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .poster-actions {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .edit-btn {
+            margin-bottom: 0;
+        }
+
+        /* ================= SAVE BUTTON ================= */
+
+        .save-btn {
+
+            width: 100%;
+
+            margin-top: 25px;
+
+            padding: 14px;
+
+            border: none;
+
+            border-radius: 9px;
+
+            background: #00b894;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+
+        .save-btn:hover {
+
+            background: #009f82;
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 7px 18px rgba(0, 0, 0, 0.2);
+        }
+
+
+        /* ================= NOTE ================= */
+
+        .note {
+
+            margin-top: 18px;
+
+            padding: 14px;
+
+            border-radius: 10px;
+
+            text-align: center;
+
+            background: rgba(0, 184, 148, 0.18);
+
+            border: 1px solid rgba(0, 184, 148, 0.30);
+
+            font-size: 13px;
+
+            color: #eeeeee;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 650px) {
+
+            nav {
+
+                padding: 15px 5%;
+            }
+
+
+            .logo {
+
+                font-size: 17px;
+            }
+
+
+            .nav-buttons {
+
+                gap: 5px;
+            }
+
+
+            .nav-buttons a {
+
+                padding: 8px 10px;
+
+                font-size: 12px;
+            }
+
+
+            .container {
+
+                width: 94%;
+
+                margin-top: 30px;
+            }
+
+
+            .heading h1 {
+
+                font-size: 26px;
+            }
+
+
+            .profile-card {
+
+                padding: 25px 20px;
+            }
+
+
+            .form-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .full-width {
+
+                grid-column: auto;
+            }
+
+            .profile-poster {
+                grid-template-columns: 1fr;
+            }
+
+            .poster-item.full-width {
+                grid-column: auto;
+            }
+
+        }
+
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav>
+
+        <div class="logo">
+
+            💊 Smart Medicine Reminder
+
+        </div>
+
+
+        <div class="nav-buttons">
+
+            <a
+                href="/dashboard"
+                class="dashboard-btn"
+            >
+                Dashboard
+            </a>
+
+
+            <a
+                href="/logout"
+                class="logout-btn"
+            >
+                Logout
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <div class="container">
+
+
+        <!-- Heading -->
+
+        <div class="heading">
+
+            <div class="profile-icon">
+
+                👤
+
+            </div>
+
+
+            <h1>
+
+                My Profile
+
+            </h1>
+
+
+            <p>
+
+                Enter and manage your personal and medical information
+
+            </p>
+
+        </div>
+
+
+        <!-- Profile Card -->
+
+        <div class="profile-card">
+
+        {% if not profile or edit_mode %}
+
+            {% if profile %}
+                <div class="poster-actions">
+                    <a href="/profile" class="edit-btn">
+                        ✏️ Cancel Edit
+                    </a>
+                </div>
+            {% endif %}
+
+            <form method="POST" id="profile-form">
+
+                <div class="form-grid">
+
+                    <!-- Name -->
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Enter your full name"
+                            value="{{ profile['name'] if profile else '' }}"
+                            required
+                        >
+                    </div>
+
+                    <!-- Age -->
+                    <div class="input-group">
+                        <label>Age</label>
+                        <input
+                            type="number"
+                            name="age"
+                            placeholder="Enter your age"
+                            min="1"
+                            max="120"
+                            value="{{ profile['age'] if profile else '' }}"
+                            required
+                        >
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="input-group">
+                        <label>Gender</label>
+                        <select name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male"
+                                {% if profile and profile['gender'] == 'Male' %}selected{% endif %}>
+                                Male
+                            </option>
+                            <option value="Female"
+                                {% if profile and profile['gender'] == 'Female' %}selected{% endif %}>
+                                Female
+                            </option>
+                            <option value="Other"
+                                {% if profile and profile['gender'] == 'Other' %}selected{% endif %}>
+                                Other
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Weight -->
+                    <div class="input-group">
+                        <label>Weight (kg)</label>
+                        <input
+                            type="number"
+                            name="weight"
+                            placeholder="Enter weight"
+                            step="0.1"
+                            min="0"
+                            value="{{ profile['weight'] if profile else '' }}"
+                            required
+                        >
+                    </div>
+
+                    <!-- Medical Condition -->
+                    <div class="input-group full-width">
+                        <label>Medical Condition</label>
+                        <textarea
+                            name="medical_condition"
+                            placeholder="Enter medical condition (if any)"
+                        >{{ profile['medical_condition'] if profile else '' }}</textarea>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="input-group full-width">
+                        <label>Contact Number</label>
+                        <input
+                            type="tel"
+                            name="contact"
+                            placeholder="Enter your contact number"
+                            value="{{ profile['contact'] if profile else '' }}"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <button type="submit" class="save-btn">
+                    💾 Save Profile
+                </button>
+
+            </form>
+
+        {% else %}
+
+            <!-- Saved Profile Poster -->
+            <div class="poster-actions">
+                <a href="/profile?edit=1" class="edit-btn">
+                    ✏️ Edit Profile
+                </a>
+            </div>
+
+            <div class="profile-poster">
+
+                <div class="poster-item">
+                    <span class="poster-label">Full Name</span>
+                    <span class="poster-value">{{ profile['name'] }}</span>
+                </div>
+
+                <div class="poster-item">
+                    <span class="poster-label">Age</span>
+                    <span class="poster-value">{{ profile['age'] }}</span>
+                </div>
+
+                <div class="poster-item">
+                    <span class="poster-label">Gender</span>
+                    <span class="poster-value">{{ profile['gender'] }}</span>
+                </div>
+
+                <div class="poster-item">
+                    <span class="poster-label">Weight</span>
+                    <span class="poster-value">{{ profile['weight'] }} kg</span>
+                </div>
+
+                <div class="poster-item full-width">
+                    <span class="poster-label">Medical Condition</span>
+                    <span class="poster-value">
+                        {{ profile['medical_condition'] if profile['medical_condition'] else 'None provided' }}
+                    </span>
+                </div>
+
+                <div class="poster-item full-width">
+                    <span class="poster-label">Contact Number</span>
+                    <span class="poster-value">{{ profile['contact'] }}</span>
+                </div>
+
+            </div>
+
+        {% endif %}
+
+        <div class="note">
+
+                🔒 Your profile information is stored in your
+                Smart Medicine Reminder account.
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>

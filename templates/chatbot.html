@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbox | Smart Medicine Reminder</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                linear-gradient(
+                    rgba(0, 80, 75, 0.55),
+                    rgba(0, 35, 55, 0.78)
+                ),
+                url("/static/images/chatbot.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        nav {
+            width: 100%;
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-buttons a {
+            text-decoration: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .dashboard-btn { background: #3498db; }
+        .logout-btn { background: #e74c3c; }
+
+        .container {
+            width: 94%;
+            max-width: 850px;
+            margin: 30px auto;
+        }
+
+        .chat-box {
+            height: 760px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 22px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.30);
+        }
+
+        .chat-header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 184, 148, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.20);
+        }
+
+        .chat-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header h1 {
+            font-size: 23px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            color: #eeeeee;
+            font-size: 13px;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 82%;
+            padding: 13px 16px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.55;
+            white-space: pre-line;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.18);
+            border-bottom-left-radius: 4px;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: #00b894;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-name {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            opacity: 0.85;
+        }
+
+        .action-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border: 0;
+            border-radius: 9px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .typing {
+            opacity: 0.75;
+            font-style: italic;
+        }
+
+        .quick-title {
+            padding: 8px 18px 0;
+            font-size: 12px;
+            opacity: 0.75;
+        }
+
+        .quick-area {
+            padding: 10px 18px 12px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .quick-area button {
+            flex-shrink: 0;
+            padding: 9px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.30);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            cursor: pointer;
+        }
+
+        .quick-area button:hover {
+            background: #00b894;
+        }
+
+        .input-area {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 13px 15px;
+            border: none;
+            outline: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #222;
+            font-size: 14px;
+        }
+
+        .send-btn {
+            width: 55px;
+            border: none;
+            border-radius: 10px;
+            background: #00b894;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .safety-note {
+            font-size: 11px;
+            line-height: 1.4;
+            opacity: 0.7;
+            padding: 0 18px 10px;
+        }
+
+        @media (max-width: 650px) {
+            nav { padding: 15px 5%; }
+            .logo { font-size: 17px; }
+            .nav-buttons a { padding: 8px 10px; font-size: 12px; }
+            .container { width: 96%; margin-top: 20px; }
+            .chat-box { height: 720px; }
+            .message { max-width: 90%; }
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">💊 Smart Medicine Reminder</div>
+    <div class="nav-buttons">
+        <a href="/dashboard" class="dashboard-btn">Dashboard</a>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="chat-box">
+
+        <div class="chat-header">
+            <div class="chat-icon">🤖</div>
+            <h1>Medicine Assistant</h1>
+            <p>Ask about your medicines, reminders, dashboard and medicine safety</p>
+        </div>
+
+        <div class="messages" id="messages">
+            <div class="message bot">
+                <span class="message-name">🤖 Assistant</span>
+                Hello! 👋 I can help you use Smart Medicine Reminder and answer common medicine-safety questions.
+            </div>
+
+            <div class="message bot">
+                <span class="message-name">💡 Try asking</span>
+                “How do I add a medicine?”, “Show my medicines”, “When is my reminder?”, or “What should I do if I miss a dose?”
+            </div>
+        </div>
+
+        <div class="quick-title">Quick questions</div>
+
+        <div class="quick-area">
+            <button onclick="quickMessage('How do I add a medicine?')">➕ Add Medicine</button>
+            <button onclick="quickMessage('Show my medicines')">📋 My Medicines</button>
+            <button onclick="quickMessage('How do reminders work?')">⏰ Reminders</button>
+            <button onclick="quickMessage('How do I enable notifications?')">🔔 Notifications</button>
+            <button onclick="quickMessage('What are medicine side effects?')">⚠️ Side Effects</button>
+            <button onclick="quickMessage('What should I do if I miss a dose?')">💊 Missed Dose</button>
+        </div>
+
+        <div class="safety-note">
+            Safety: this assistant provides general information and help with the app.
+            It does not diagnose illness or replace a doctor/pharmacist. Do not change a
+            prescription dose based only on chatbot advice.
+        </div>
+
+        <div class="input-area">
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Ask a medicine or app question..."
+                onkeydown="handleEnter(event)"
+                autocomplete="off"
+            >
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const messages = document.getElementById("messages");
+    const input = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function addMessage(text, type, action) {
+        const message = document.createElement("div");
+        message.className = "message " + type;
+
+        const name = document.createElement("span");
+        name.className = "message-name";
+        name.textContent = type === "bot" ? "🤖 Assistant" : "👤 You";
+        message.appendChild(name);
+
+        const textElement = document.createElement("span");
+        textElement.textContent = text;
+        message.appendChild(textElement);
+
+        if (action && action.url) {
+            const link = document.createElement("a");
+            link.className = "action-btn";
+            link.href = action.url;
+            link.textContent = action.label || "Open";
+            message.appendChild(document.createElement("br"));
+            message.appendChild(link);
+        }
+
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function showTyping() {
+        const typing = document.createElement("div");
+        typing.className = "message bot typing";
+        typing.id = "typing";
+        typing.innerHTML = '<span class="message-name">🤖 Assistant</span>Thinking...';
+        messages.appendChild(typing);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function removeTyping() {
+        const typing = document.getElementById("typing");
+        if (typing) typing.remove();
+    }
+
+    async function sendMessage() {
+        const text = input.value.trim();
+        if (!text || sendBtn.disabled) return;
+
+        addMessage(text, "user");
+        input.value = "";
+        sendBtn.disabled = true;
+        showTyping();
+
+        try {
+            const response = await fetch("/api/chatbot", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: text})
+            });
+
+            const data = await response.json();
+            removeTyping();
+
+            if (data.reply) {
+                addMessage(data.reply, "bot", data.action);
+            } else {
+                addMessage("Sorry, I could not understand that request.", "bot");
+            }
+        } catch (error) {
+            removeTyping();
+            addMessage(
+                "I couldn't connect to the assistant right now. Please try again.",
+                "bot"
+            );
+            console.error(error);
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+
+    function quickMessage(text) {
+        input.value = text;
+        sendMessage();
+    }
+
+    function handleEnter(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    input.focus();
+</script>
+
+</body>
+</html>

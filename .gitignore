@@ -1,0 +1,10 @@
+.env
+venv/
+__pycache__/
+database.db
+*.pyc
+vapid_private.der
+vapid_private.pem
+vapid_private.txt
+appbackuo.py
+reminderbackup.py

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Medicines | Smart Medicine Reminder</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-bottom: 40px;
+            background:
+                linear-gradient(
+                    rgba(0, 80, 75, 0.55),
+                    rgba(0, 35, 55, 0.72)
+                ),
+                url("/static/images/view.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        nav {
+            width: 100%;
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-buttons a {
+            text-decoration: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .dashboard-btn { background: #3498db; }
+        .dashboard-btn:hover { background: #2980b9; }
+
+        .add-btn { background: #00b894; }
+        .add-btn:hover { background: #009f82; }
+
+        .logout-btn { background: #e74c3c; }
+        .logout-btn:hover { background: #c0392b; }
+
+        .container {
+            width: 92%;
+            max-width: 1100px;
+            margin: 45px auto;
+        }
+
+        .heading {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .heading-icon {
+            font-size: 55px;
+            margin-bottom: 8px;
+        }
+
+        .heading h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .heading p {
+            color: #eeeeee;
+            font-size: 14px;
+        }
+
+        .medicine-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 22px;
+        }
+
+        .medicine-card {
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+            transition: 0.3s;
+        }
+
+        .medicine-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+        .medicine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .medicine-name {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .medicine-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 27px;
+        }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 14px;
+        }
+
+        .detail:last-of-type {
+            border-bottom: none;
+        }
+
+        .label {
+            color: #dddddd;
+        }
+
+        .value {
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .reminder {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            background: rgba(0, 184, 148, 0.22);
+            border: 1px solid rgba(0, 184, 148, 0.35);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .empty {
+            padding: 50px 25px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.13);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .empty h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .empty p {
+            color: #dddddd;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .empty a {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 22px;
+            border-radius: 9px;
+            background: #00b894;
+            color: white;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .empty a:hover {
+            background: #009f82;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 650px) {
+            nav {
+                padding: 15px 5%;
+            }
+
+            .logo {
+                font-size: 17px;
+            }
+
+            .nav-buttons {
+                gap: 5px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+
+            .nav-buttons a {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .container {
+                width: 94%;
+                margin-top: 30px;
+            }
+
+            .heading h1 {
+                font-size: 26px;
+            }
+
+            .medicine-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">💊 Smart Medicine Reminder</div>
+
+        <div class="nav-buttons">
+            <a href="/dashboard" class="dashboard-btn">Dashboard</a>
+            <a href="/medicine" class="add-btn">+ Add Medicine</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="heading">
+            <div class="heading-icon">📋</div>
+            <h1>My Medicines</h1>
+            <p>View your saved medicines and reminder schedules</p>
+        </div>
+
+        {% if medicines %}
+
+        <div class="medicine-list">
+
+            {% for medicine in medicines %}
+
+            <div class="medicine-card">
+
+                <div class="medicine-header">
+                    <div class="medicine-name">
+                        {{ medicine['medicine_type'] }}
+                    </div>
+
+                    <div class="medicine-icon">
+                        {% if medicine['medicine_type'] == 'Tablet' %}
+                            💊
+                        {% elif medicine['medicine_type'] == 'Capsule' %}
+                            💊
+                        {% elif medicine['medicine_type'] == 'Syrup' %}
+                            🧴
+                        {% elif medicine['medicine_type'] == 'Injection' %}
+                            💉
+                        {% elif medicine['medicine_type'] == 'Drops' %}
+                            💧
+                        {% elif medicine['medicine_type'] == 'Cream' %}
+                            🧴
+                        {% else %}
+                            💊
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="detail">
+                    <span class="label">Strength</span>
+                    <span class="value">
+                        {{ medicine['strength'] }}
+                        {% if medicine['medicine_type'] == 'Syrup'
+                           or medicine['medicine_type'] == 'Injection' %}
+                            ml
+                        {% elif medicine['medicine_type'] == 'Drops' %}
+                            drops
+                        {% else %}
+                            mg
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="detail">
+                    <span class="label">From Date</span>
+                    <span class="value">{{ medicine['from_date'] }}</span>
+                </div>
+
+                <div class="detail">
+                    <span class="label">To Date</span>
+                    <span class="value">{{ medicine['to_date'] }}</span>
+                </div>
+
+                <div class="detail">
+                    <span class="label">Reminder Time</span>
+                    <span class="value">{{ medicine['time'] }}</span>
+                </div>
+
+                <div class="reminder">
+                    🔔 Reminder Active
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty">
+            <div class="empty-icon">💊</div>
+
+            <h2>No Medicines Added</h2>
+
+            <p>
+                You haven't added any medicines yet.
+                Add your first medicine to start using reminders.
+            </p>
+
+            <a href="/medicine">+ Add Medicine</a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

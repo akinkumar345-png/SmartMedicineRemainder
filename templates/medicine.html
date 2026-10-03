@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Medicine Details | Smart Medicine Reminder</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+
+            min-height: 100vh;
+
+            padding-bottom: 40px;
+
+            background:
+                linear-gradient(
+                    rgba(0, 80, 75, 0.55),
+                    rgba(0, 35, 55, 0.70)
+                ),
+                url("/static/images/medicine.jpg");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            color: white;
+        }
+
+
+        /* ================= NAVBAR ================= */
+
+        nav {
+
+            width: 100%;
+
+            padding: 18px 6%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            background: rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(15px);
+
+            -webkit-backdrop-filter: blur(15px);
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+
+        .logo {
+
+            font-size: 22px;
+
+            font-weight: bold;
+        }
+
+
+        .nav-buttons {
+
+            display: flex;
+
+            gap: 10px;
+        }
+
+
+        .nav-buttons a {
+
+            text-decoration: none;
+
+            color: white;
+
+            padding: 10px 16px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            transition: 0.3s;
+        }
+
+
+        .dashboard-btn {
+
+            background: #3498db;
+        }
+
+
+        .dashboard-btn:hover {
+
+            background: #2980b9;
+
+            transform: translateY(-2px);
+        }
+
+
+        .view-btn {
+
+            background: #00b894;
+        }
+
+
+        .view-btn:hover {
+
+            background: #009f82;
+
+            transform: translateY(-2px);
+        }
+
+
+        .logout-btn {
+
+            background: #e74c3c;
+        }
+
+
+        .logout-btn:hover {
+
+            background: #c0392b;
+
+            transform: translateY(-2px);
+        }
+
+
+        /* ================= CONTAINER ================= */
+
+        .container {
+
+            width: 92%;
+
+            max-width: 750px;
+
+            margin: 45px auto;
+        }
+
+
+        /* ================= HEADING ================= */
+
+        .heading {
+
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .medicine-icon {
+
+            font-size: 55px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .heading h1 {
+
+            font-size: 30px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .heading p {
+
+            color: #eeeeee;
+
+            font-size: 14px;
+        }
+
+
+        /* ================= CARD ================= */
+
+        .medicine-card {
+
+            padding: 35px;
+
+            background: rgba(255, 255, 255, 0.15);
+
+            backdrop-filter: blur(15px);
+
+            -webkit-backdrop-filter: blur(15px);
+
+            border: 1px solid rgba(255, 255, 255, 0.28);
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.28);
+        }
+
+
+        /* ================= FORM ================= */
+
+        .form-grid {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+        }
+
+
+        .input-group {
+
+            display: flex;
+
+            flex-direction: column;
+        }
+
+
+        .full-width {
+
+            grid-column: 1 / -1;
+        }
+
+
+        label {
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+        }
+
+
+        input,
+        select {
+
+            width: 100%;
+
+            padding: 13px 14px;
+
+            border: none;
+
+            outline: none;
+
+            border-radius: 9px;
+
+            background: rgba(255, 255, 255, 0.95);
+
+            color: #222;
+
+            font-size: 14px;
+
+            transition: 0.3s;
+        }
+
+
+        input:focus,
+        select:focus {
+
+            box-shadow:
+                0 0 0 3px rgba(0, 184, 148, 0.35);
+        }
+
+
+        /* ================= MEDICINE TYPE ================= */
+
+        .type-description {
+
+            margin-top: 7px;
+
+            font-size: 12px;
+
+            color: #dddddd;
+        }
+
+
+        /* ================= DATE ================= */
+
+        .date-info {
+
+            margin-top: 18px;
+
+            padding: 14px;
+
+            border-radius: 10px;
+
+            background: rgba(52, 152, 219, 0.18);
+
+            border: 1px solid rgba(52, 152, 219, 0.30);
+
+            font-size: 13px;
+
+            line-height: 1.5;
+        }
+
+
+        /* ================= SAVE BUTTON ================= */
+
+        .save-btn {
+
+            width: 100%;
+
+            margin-top: 25px;
+
+            padding: 14px;
+
+            border: none;
+
+            border-radius: 9px;
+
+            background: #00b894;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+
+        .save-btn:hover {
+
+            background: #009f82;
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 7px 18px rgba(0, 0, 0, 0.2);
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 650px) {
+
+            nav {
+
+                padding: 15px 5%;
+            }
+
+
+            .logo {
+
+                font-size: 17px;
+            }
+
+
+            .nav-buttons {
+
+                gap: 5px;
+
+                flex-wrap: wrap;
+
+                justify-content: flex-end;
+            }
+
+
+            .nav-buttons a {
+
+                padding: 8px 10px;
+
+                font-size: 12px;
+            }
+
+
+            .container {
+
+                width: 94%;
+
+                margin-top: 30px;
+            }
+
+
+            .heading h1 {
+
+                font-size: 26px;
+            }
+
+
+            .medicine-card {
+
+                padding: 25px 20px;
+            }
+
+
+            .form-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .full-width {
+
+                grid-column: auto;
+            }
+
+        }
+
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav>
+
+        <div class="logo">
+
+            💊 Smart Medicine Reminder
+
+        </div>
+
+
+        <div class="nav-buttons">
+
+            <a
+                href="/dashboard"
+                class="dashboard-btn"
+            >
+                Dashboard
+            </a>
+
+
+            <a
+                href="/view"
+                class="view-btn"
+            >
+                View Medicines
+            </a>
+
+
+            <a
+                href="/logout"
+                class="logout-btn"
+            >
+                Logout
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <div class="container">
+
+
+        <!-- Heading -->
+
+        <div class="heading">
+
+            <div class="medicine-icon">
+
+                💊
+
+            </div>
+
+
+            <h1>
+
+                Medicine Details
+
+            </h1>
+
+
+            <p>
+
+                Enter your medicine and reminder information
+
+            </p>
+
+        </div>
+
+
+        <!-- Medicine Card -->
+
+        <div class="medicine-card">
+
+
+            <form
+                method="POST"
+                onsubmit="return validateDates()"
+            >
+
+
+                <div class="form-grid">
+
+
+                    <!-- Medicine Type -->
+
+                    <div class="input-group full-width">
+
+                        <label>
+                            Medicine Type
+                        </label>
+
+
+                        <select
+                            name="medicine_type"
+                            required
+                        >
+
+                            <option value="">
+                                Select Medicine Type
+                            </option>
+
+                            <option value="Tablet">
+                                💊 Tablet
+                            </option>
+
+                            <option value="Capsule">
+                                💊 Capsule
+                            </option>
+
+                            <option value="Syrup">
+                                🧴 Syrup
+                            </option>
+
+                            <option value="Injection">
+                                💉 Injection
+                            </option>
+
+                            <option value="Drops">
+                                💧 Drops
+                            </option>
+
+                            <option value="Cream">
+                                🧴 Cream
+                            </option>
+
+                        </select>
+
+
+                        <div class="type-description">
+
+                            Choose the type of medicine you are taking.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Strength -->
+
+                    <div class="input-group">
+
+                        <label id="strength-label">
+                            Strength (mg)
+                        </label>
+
+
+                        <input
+                            type="number"
+                            name="strength"
+                            id="strength"
+                            placeholder="Example: 500"
+                            min="0"
+                            step="0.01"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Time -->
+
+                    <div class="input-group">
+
+                        <label>
+                            Reminder Time
+                        </label>
+
+
+                        <input
+                            type="time"
+                            name="time"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- From Date -->
+
+                    <div class="input-group">
+
+                        <label>
+                            From Date
+                        </label>
+
+
+                        <input
+                            type="date"
+                            name="from_date"
+                            id="from_date"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- To Date -->
+
+                    <div class="input-group">
+
+                        <label>
+                            To Date
+                        </label>
+
+
+                        <input
+                            type="date"
+                            name="to_date"
+                            id="to_date"
+                            required
+                        >
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- Date Information -->
+
+                <div class="date-info">
+
+                    📅 The reminder will be active only between
+                    the selected <strong>From Date</strong> and
+                    <strong>To Date</strong>.
+
+                    <br><br>
+
+                    🔔 A desktop notification will be generated
+                    at the selected reminder time.
+
+                </div>
+
+
+                <!-- Save -->
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                >
+
+                    💾 Save Medicine
+
+                </button>
+
+
+            </form>
+
+
+        </div>
+
+
+    </div>
+
+
+    <script>
+
+        /*
+         * Change strength unit based on medicine type.
+         *
+         * Tablet, Capsule, Cream -> mg
+         * Syrup, Injection -> ml
+         * Drops -> drops
+         */
+        const medicineType = document.querySelector(
+            'select[name="medicine_type"]'
+        );
+
+        const strengthLabel =
+            document.getElementById("strength-label");
+
+        const strengthInput =
+            document.getElementById("strength");
+
+        function updateStrengthUnit() {
+            const type = medicineType.value;
+
+            let unit = "mg";
+            let placeholder = "Example: 500";
+
+            if (type === "Syrup" || type === "Injection") {
+                unit = "ml";
+                placeholder = "Example: 5";
+            } else if (type === "Drops") {
+                unit = "drops";
+                placeholder = "Example: 2";
+            }
+
+            strengthLabel.textContent = "Strength (" + unit + ")";
+            strengthInput.placeholder = placeholder;
+        }
+
+        medicineType.addEventListener("change", updateStrengthUnit);
+
+        // Set the correct unit when the page first loads.
+        updateStrengthUnit();
+
+
+        /*
+         * Set today's date as the minimum date.
+         */
+
+        const today =
+            new Date().toISOString().split("T")[0];
+
+        document.getElementById("from_date").min = today;
+
+        document.getElementById("to_date").min = today;
+
+
+        /*
+         * Make sure To Date is not
+         * before From Date.
+         */
+
+        document
+            .getElementById("from_date")
+            .addEventListener("change", function () {
+
+                document
+                    .getElementById("to_date")
+                    .min = this.value;
+
+            });
+
+
+        /*
+         * Final date validation.
+         */
+
+        function validateDates() {
+
+            const fromDate =
+                document.getElementById("from_date").value;
+
+            const toDate =
+                document.getElementById("to_date").value;
+
+
+            if (toDate < fromDate) {
+
+                alert(
+                    "To Date cannot be before From Date."
+                );
+
+                return false;
+
+            }
+
+
+            return true;
+        }
+
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,4 @@
+Flask
+pywebpush
+psycopg2-binary
+python-dotenv

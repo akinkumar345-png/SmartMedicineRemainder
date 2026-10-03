@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Smart Medicine Reminder</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+
+        /* ================= BODY ================= */
+
+        body {
+
+            min-height: 100vh;
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            padding: 20px;
+
+            background:
+                linear-gradient(
+                    rgba(0, 80, 75, 0.55),
+                    rgba(0, 35, 55, 0.72)
+                ),
+                url("/static/images/login.jpg");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+
+        /* ================= LOGIN CARD ================= */
+
+        .login-card {
+
+            width: 100%;
+
+            max-width: 420px;
+
+            padding: 40px 35px;
+
+            background:
+                rgba(255, 255, 255, 0.15);
+
+            backdrop-filter: blur(15px);
+
+            -webkit-backdrop-filter: blur(15px);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.28);
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.30);
+
+            color: white;
+        }
+
+
+        /* ================= ICON ================= */
+
+        .logo {
+
+            text-align: center;
+
+            font-size: 55px;
+
+            margin-bottom: 8px;
+        }
+
+
+        /* ================= HEADING ================= */
+
+        h1 {
+
+            text-align: center;
+
+            font-size: 30px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .subtitle {
+
+            text-align: center;
+
+            color: #eeeeee;
+
+            font-size: 14px;
+
+            margin-bottom: 30px;
+        }
+
+
+        /* ================= INPUT ================= */
+
+        .input-group {
+
+            margin-bottom: 20px;
+        }
+
+
+        label {
+
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+        }
+
+
+        input {
+
+            width: 100%;
+
+            padding: 14px;
+
+            border: none;
+
+            outline: none;
+
+            border-radius: 9px;
+
+            background:
+                rgba(255, 255, 255, 0.95);
+
+            color: #222;
+
+            font-size: 14px;
+
+            transition: 0.3s;
+        }
+
+
+        input::placeholder {
+
+            color: #777;
+        }
+
+
+        input:focus {
+
+            box-shadow:
+                0 0 0 3px
+                rgba(0, 184, 148, 0.35);
+        }
+
+
+        /* ================= LOGIN BUTTON ================= */
+
+        .login-btn {
+
+            width: 100%;
+
+            padding: 14px;
+
+            margin-top: 5px;
+
+            border: none;
+
+            border-radius: 9px;
+
+            background: #00b894;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+
+        .login-btn:hover {
+
+            background: #009f82;
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 7px 18px rgba(0, 0, 0, 0.20);
+        }
+
+
+        /* ================= REGISTER LINK ================= */
+
+        .register-text {
+
+            text-align: center;
+
+            margin-top: 22px;
+
+            color: #eeeeee;
+
+            font-size: 14px;
+        }
+
+
+        .register-text a {
+
+            color: #fff176;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+
+        .register-text a:hover {
+
+            text-decoration: underline;
+        }
+
+
+        /* ================= ERROR MESSAGE ================= */
+
+        .error {
+
+            margin-bottom: 18px;
+
+            padding: 11px;
+
+            border-radius: 8px;
+
+            text-align: center;
+
+            background:
+                rgba(231, 76, 60, 0.25);
+
+            border:
+                1px solid rgba(231, 76, 60, 0.45);
+
+            color: #ffffff;
+
+            font-size: 13px;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 500px) {
+
+            body {
+
+                padding: 15px;
+            }
+
+
+            .login-card {
+
+                padding: 30px 22px;
+            }
+
+
+            .logo {
+
+                font-size: 45px;
+            }
+
+
+            h1 {
+
+                font-size: 26px;
+            }
+
+        }
+
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= LOGIN CARD ================= -->
+
+    <div class="login-card">
+
+
+        <!-- Medical Icon -->
+
+        <div class="logo">
+
+            💊
+
+        </div>
+
+
+        <!-- Heading -->
+
+        <h1>
+
+            Welcome Back
+
+        </h1>
+
+
+        <p class="subtitle">
+
+            Smart Medicine Reminder
+
+        </p>
+
+
+        <!-- Error Message -->
+
+        {% if error %}
+
+        <div class="error">
+
+            {{ error }}
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- Login Form -->
+
+        <form method="POST">
+
+
+            <!-- Username -->
+
+            <div class="input-group">
+
+                <label>
+
+                    Username
+
+                </label>
+
+
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Enter your username"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Password -->
+
+            <div class="input-group">
+
+                <label>
+
+                    Password
+
+                </label>
+
+
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Login -->
+
+            <button
+                type="submit"
+                class="login-btn"
+            >
+
+                Login
+
+            </button>
+
+
+        </form>
+
+
+        <!-- Register -->
+
+        <div class="register-text">
+
+            Don't have an account?
+
+            <a href="/register">
+
+                Create Account
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>
