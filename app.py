@@ -1037,64 +1037,107 @@ def chatbot_api():
 def save_subscription():
 
     if "user_id" not in session:
+        print("SAVE SUBSCRIPTION: User not logged in")
 
         return {
             "success": False,
             "message": "Please login first"
         }, 401
 
-    data = request.get_json()
+    user_id = session["user_id"]
+
+    data = request.get_json(silent=True)
+
+    print("SAVE SUBSCRIPTION: user_id =", user_id)
 
     if not data:
+        print("SAVE SUBSCRIPTION: No data received")
 
         return {
             "success": False,
             "message": "Invalid subscription data"
         }, 400
 
-    endpoint = data["endpoint"]
-    p256dh = data["keys"]["p256dh"]
-    auth = data["keys"]["auth"]
+    try:
+        endpoint = data["endpoint"]
+        p256dh = data["keys"]["p256dh"]
+        auth = data["keys"]["auth"]
+    except (KeyError, TypeError):
+        print("SAVE SUBSCRIPTION: Invalid subscription structure")
+
+        return {
+            "success": False,
+            "message": "Invalid subscription data"
+        }, 400
 
     conn = get_db()
-    cursor = conn.cursor()
 
-    # Remove old subscription(s) for this user
-    cursor.execute(
-        """
-        DELETE FROM push_subscriptions
-        WHERE user_id = %s
-        """,
-        (session["user_id"],)
-    )
+    try:
+        cursor = conn.cursor()
 
-    # Save new subscription
-    cursor.execute(
-        """
-        INSERT INTO push_subscriptions
-        (
-            user_id,
-            endpoint,
-            p256dh,
-            auth
+        # Remove old subscription for this user
+        cursor.execute(
+            """
+            DELETE FROM push_subscriptions
+            WHERE user_id = %s
+            """,
+            (user_id,)
         )
-        VALUES (%s, %s, %s, %s)
-        """,
-        (
-            session["user_id"],
-            endpoint,
-            p256dh,
-            auth
+
+        # Save new subscription
+        cursor.execute(
+            """
+            INSERT INTO push_subscriptions
+            (
+                user_id,
+                endpoint,
+                p256dh,
+                auth
+            )
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+            """,
+            (
+                user_id,
+                endpoint,
+                p256dh,
+                auth
+            )
         )
-    )
 
-    conn.commit()
-    conn.close()
+        saved_id = cursor.fetchone()["id"]
 
-    return {
-        "success": True,
-        "message": "Notification subscription saved"
-    }
+        conn.commit()
+
+        print(
+            "SAVE SUBSCRIPTION: Saved successfully. "
+            "subscription_id =",
+            saved_id,
+            "user_id =",
+            user_id
+        )
+
+        return {
+            "success": True,
+            "message": "Notification subscription saved"
+        }
+
+    except Exception as error:
+
+        conn.rollback()
+
+        print(
+            "SAVE SUBSCRIPTION ERROR:",
+            repr(error)
+        )
+
+        return {
+            "success": False,
+            "message": "Failed to save notification subscription"
+        }, 500
+
+    finally:
+        conn.close()
 
 
 # =========================================================
