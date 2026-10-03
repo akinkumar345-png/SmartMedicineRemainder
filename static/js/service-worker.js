@@ -10,8 +10,6 @@ self.addEventListener("push", function (event) {
 
     const options = {
         body: data.body || "It is time to take your medicine.",
-        icon: "/static/images/medicine-icon.png",
-        badge: "/static/images/medicine-icon.png",
         data: {
             url: "/dashboard"
         }
